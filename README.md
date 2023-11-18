@@ -1,7 +1,6 @@
-
 # T211 MQTT Bridge
 
-With this firmware, it is possible to read data from Belgian smart electricity meters and send them via the MQTT protocol to your home automation box.
+With this firmware for ESP-01, it is possible to read data from Belgian smart electricity meters and send them via the MQTT protocol to your home automation box.
 
 
 ## Features
