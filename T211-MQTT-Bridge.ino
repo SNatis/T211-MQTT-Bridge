@@ -3,13 +3,13 @@
 #include <WiFiClientSecure.h>
 #include <PubSubClient.h>
 
-const char* ssid PROGMEM = "****************"; // replace with your WiFi SSID
-const char* password PROGMEM = "*************"; // replace with your WiFi password
+const char* ssid PROGMEM = "***************"; // replace with your WiFi SSID
+const char* password PROGMEM = "***********"; // replace with your WiFi password
 const char* host PROGMEM = "192.168.0.0"; // IP address of your MQTT broker (Jeedom)
 
 // Debug Mode
 // Allows for various messages to be sent on the serial port of the ESP for debugging.
-//#define DEBUG 1
+// #define DEBUG 1
 
 // setup states
 #define STATE_INITIAL 0
@@ -28,10 +28,13 @@ PubSubClient mqttClient(T211);
 char get_byte() {
   int a = -1;
   if (Serial.available() == 0) {
-    // The serial buffer is empty. All messages have been processed.
-    // We pause and then we request the data from the meter through the GPIO2 port.
-    delay(3000);
-    digitalWrite(2, HIGH);
+    delay(500);
+    if (Serial.available() == 0) {
+      // The serial buffer is empty. All messages have been processed.
+      // We pause and then we request the data from the meter through the GPIO2 port.
+      delay(2500);
+      digitalWrite(2, HIGH);
+    }
   }
   
   // We’re waiting for the data to arrive at the serial port.
@@ -44,6 +47,7 @@ char get_byte() {
 }
 
 boolean reconnect() {
+  digitalWrite(0, LOW);
   if (WiFi.status() != WL_CONNECTED) {
     #ifdef DEBUG
     Serial.println("Reconnecting to WiFi...");
@@ -61,8 +65,10 @@ boolean reconnect() {
     #ifdef DEBUG
     Serial.print('.');
     #endif
-    delay(500);
+    digitalWrite(0, !digitalRead(0));
+    delay(1000);
   }
+  digitalWrite(0, LOW);
   // Setup the WILL message on connect
   mqttClient.connect("T211 Bridge");
   #ifdef DEBUG
@@ -71,11 +77,14 @@ boolean reconnect() {
   Serial.print("Wifi Status :");
   Serial.println(WiFi.status());
   #endif
+  digitalWrite(0, HIGH);
   return mqttClient.connected();
 }
 
 void setup() {
   
+  pinMode(0, OUTPUT);
+  digitalWrite(0, LOW);
   // The ESP is started with this GPIO set to +5V.
   // Set it to 0 and wait for the meter to send its message before activating the serial port of the ESP.
   pinMode(2, OUTPUT); // Data Request from T211
@@ -96,8 +105,10 @@ void setup() {
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
+    digitalWrite(0, !digitalRead(0));
     delay(500);
   }
+  digitalWrite(0, HIGH);
   #ifdef DEBUG
   Serial.println("Connection to MQTT Broker");
   #endif
@@ -160,6 +171,8 @@ void loop() {
   } else {
     // Client connected
     mqttClient.loop();
+    digitalWrite(0, LOW);
     mqttClient.publish(topic,(const uint8_t*) value,i,0);
+    digitalWrite(0, HIGH);
   }
 }
