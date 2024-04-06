@@ -133,7 +133,7 @@ void loop() {
   topic[i] = 0;
   i = 0;
   value[0] = get_byte();
-  while (value[i] != ')' && i < 19) { // ) End Value
+  while (value[i] != ')' && value[i] != '*' && i < 19) { // ) End Value
     i=i+1;
     value[i] = get_byte();
   }
